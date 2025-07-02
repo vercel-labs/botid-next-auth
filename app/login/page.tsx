@@ -1,5 +1,6 @@
 import { signIn } from "@/auth"
 import { AuthError } from "next-auth"
+import { checkBotId } from "botid/server"
 
 export default async function LoginPage({
   searchParams,
@@ -26,9 +27,31 @@ export default async function LoginPage({
           </div>
         )}
         
+        {params?.error === "BotDetected" && (
+          <div className="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+            <p className="text-sm text-red-800 dark:text-red-400">
+              Bot detected. Access denied.
+            </p>
+          </div>
+        )}
+        
         <form
           action={async (formData) => {
             "use server"
+            
+            // Check if the request is from a bot
+            const verification = await checkBotId()
+            
+            if (verification.isBot) {
+              // Redirect back to login with bot error
+              const url = new URL("/login", process.env.NEXTAUTH_URL || "http://localhost:3000")
+              url.searchParams.set("error", "BotDetected")
+              if (params?.callbackUrl) {
+                url.searchParams.set("callbackUrl", params.callbackUrl)
+              }
+              throw new Error("Bot detected")
+            }
+            
             try {
               await signIn("credentials", {
                 username: formData.get("username"),

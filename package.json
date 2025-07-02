@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "botid": "^1.4.1",
     "next": "15.3.4",
     "next-auth": "^5.0.0-beta.29",
     "react": "^19.0.0",
